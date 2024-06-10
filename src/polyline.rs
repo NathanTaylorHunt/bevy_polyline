@@ -73,8 +73,40 @@ pub struct IndexRange {
 #[derive(Debug, Default, Asset, Clone, TypePath)]
 // #[uuid = "c76af88a-8afe-405c-9a64-0a7d845d2546"]
 pub struct Polyline {
-    pub vertices: Vec<Vec3>,  // todo init with capacity
-    pub index_ranges: Vec<IndexRange>,
+    vertices: Vec<Vec3>,
+    current_vertex_index: usize,
+    index_ranges: Vec<IndexRange>,
+    current_index_index: usize,
+}
+
+impl Polyline {
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            vertices: vec![Vec3::ZERO; capacity],
+            index_ranges: vec![IndexRange { start: 0, end: 0 }; capacity],  // todo add extra param for this capacity
+            current_vertex_index: 0,
+            current_index_index: 0,
+        }
+    }
+
+    pub fn add_vertex(&mut self, vertex: Vec3, connected: bool) {
+        // add vertex to buffer
+        self.vertices[self.current_vertex_index] = vertex;
+        
+        // update index ranges
+        if connected {
+            let index_range = &mut self.index_ranges[self.current_index_index];
+            index_range.end = self.current_vertex_index as u32;
+        } else {
+            self.current_index_index = (self.current_index_index + 1) % self.index_ranges.capacity();
+            let index_range = &mut self.index_ranges[self.current_index_index];
+            index_range.start = self.current_vertex_index as u32;
+            index_range.end = self.current_vertex_index as u32;
+        }
+
+        // update ring indices
+        self.current_vertex_index = (self.current_vertex_index + 1) % self.vertices.capacity() - 1;
+    }
 }
 
 impl RenderAsset for Polyline {
@@ -434,10 +466,10 @@ impl<P: PhaseItem> RenderCommand<P> for DrawPolyline {
     ) -> RenderCommandResult {
         if let Some(gpu_polyline) = polylines.into_inner().get(pl_handle.unwrap()) {
             pass.set_vertex_buffer(0, gpu_polyline.vertex_buffer.slice(..));
-            // let num_instances = gpu_polyline.vertex_count.max(1) - 1;
-            // pass.draw(0..6, 0..num_instances);
             for range in &gpu_polyline.index_ranges {
-                pass.draw(0..6, range.start..range.end);
+                if range.start != 0 && range.end != 0 {
+                    pass.draw(0..6, range.start..range.end);
+                }
             }
             RenderCommandResult::Success
         } else {
