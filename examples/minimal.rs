@@ -16,7 +16,14 @@ fn setup(
 ) {
     commands.spawn(PolylineBundle {
         polyline: polylines.add(Polyline {
-            vertices: vec![-Vec3::ONE, Vec3::ONE],
+            vertices: vec![
+                -Vec3::ONE, Vec3::ONE,
+                Vec3::new(-3.0, 4.0, 0.0), Vec3::new(2.0, 2.0, 0.0),
+            ],
+            index_ranges: vec![
+                IndexRange { start: 0,  end: 1 },
+                IndexRange { start: 2,  end: 3 },
+            ],
         }),
         material: polyline_materials.add(PolylineMaterial {
             width: 10.0,

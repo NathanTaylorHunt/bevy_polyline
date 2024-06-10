@@ -64,22 +64,23 @@ pub struct PolylineBundle {
     pub view_visibility: ViewVisibility,
 }
 
+#[derive(Debug, Copy, Clone)]
+pub struct IndexRange {
+    pub start: u32,
+    pub end: u32,
+}
+
 #[derive(Debug, Default, Asset, Clone, TypePath)]
 // #[uuid = "c76af88a-8afe-405c-9a64-0a7d845d2546"]
 pub struct Polyline {
-    pub vertices: Vec<Vec3>,
+    pub vertices: Vec<Vec3>,  // todo init with capacity
+    pub index_ranges: Vec<IndexRange>,
 }
 
 impl RenderAsset for Polyline {
-    // type ExtractedAsset = Polyline;
-
     type PreparedAsset = GpuPolyline;
 
     type Param = SRes<RenderDevice>;
-
-    // fn extract_asset(&self) -> Self::ExtractedAsset {
-    //     self.clone()
-    // }
 
     fn asset_usage(&self) -> bevy::render::render_asset::RenderAssetUsages {
         RenderAssetUsages::default()
@@ -98,7 +99,8 @@ impl RenderAsset for Polyline {
 
         Ok(GpuPolyline {
             vertex_buffer,
-            vertex_count: self.vertices.len() as u32,
+            index_ranges: self.index_ranges.clone(),  // !!!
+            // vertex_count: self.vertices.len() as u32,
         })
     }
 }
@@ -113,7 +115,8 @@ pub struct PolylineUniform {
 #[derive(Debug, Clone)]
 pub struct GpuPolyline {
     pub vertex_buffer: Buffer,
-    pub vertex_count: u32,
+    pub index_ranges: Vec<IndexRange>,
+    // pub vertex_count: u32,
 }
 
 pub fn extract_polylines(
@@ -431,8 +434,11 @@ impl<P: PhaseItem> RenderCommand<P> for DrawPolyline {
     ) -> RenderCommandResult {
         if let Some(gpu_polyline) = polylines.into_inner().get(pl_handle.unwrap()) {
             pass.set_vertex_buffer(0, gpu_polyline.vertex_buffer.slice(..));
-            let num_instances = gpu_polyline.vertex_count.max(1) - 1;
-            pass.draw(0..6, 0..num_instances);
+            // let num_instances = gpu_polyline.vertex_count.max(1) - 1;
+            // pass.draw(0..6, 0..num_instances);
+            for range in &gpu_polyline.index_ranges {
+                pass.draw(0..6, range.start..range.end);
+            }
             RenderCommandResult::Success
         } else {
             RenderCommandResult::Failure

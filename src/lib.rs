@@ -10,7 +10,7 @@ pub mod polyline;
 
 pub mod prelude {
     pub use crate::material::PolylineMaterial;
-    pub use crate::polyline::{Polyline, PolylineBundle};
+    pub use crate::polyline::{Polyline, PolylineBundle, IndexRange};
     pub use crate::PolylinePlugin;
 }
 pub struct PolylinePlugin;
