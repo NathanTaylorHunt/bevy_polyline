@@ -96,12 +96,12 @@ impl Polyline {
         // update index ranges
         if connected {
             let index_range = &mut self.index_ranges[self.current_index_index];
-            index_range.end = self.current_vertex_index as u32;
+            index_range.end = self.current_vertex_index as u32 + 1;  // todo clamp
         } else {
             self.current_index_index = (self.current_index_index + 1) % self.index_ranges.capacity();
             let index_range = &mut self.index_ranges[self.current_index_index];
             index_range.start = self.current_vertex_index as u32;
-            index_range.end = self.current_vertex_index as u32;
+            index_range.end = self.current_vertex_index as u32 + 1;  // todo clamp
         }
 
         // update ring indices
