@@ -73,6 +73,7 @@ pub struct IndexRange {
 #[derive(Debug, Default, Asset, Clone, TypePath)]
 // #[uuid = "c76af88a-8afe-405c-9a64-0a7d845d2546"]
 pub struct Polyline {
+    pub capacity: usize,
     pub vertices: Vec<Vec3>,
     pub current_vertex_index: usize,
     pub index_ranges: Vec<IndexRange>,
@@ -82,6 +83,7 @@ pub struct Polyline {
 impl Polyline {
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
+            capacity,
             vertices: vec![Vec3::ZERO; capacity],
             index_ranges: vec![IndexRange { start: 0, end: 0 }; capacity],  // todo add extra param for this capacity
             current_vertex_index: 0,
@@ -98,14 +100,14 @@ impl Polyline {
             let index_range = &mut self.index_ranges[self.current_index_index];
             index_range.end = self.current_vertex_index as u32 + 1;  // todo clamp
         } else {
-            self.current_index_index = (self.current_index_index + 1) % self.index_ranges.capacity();
+            self.current_index_index = (self.current_index_index + 1) % self.capacity;
             let index_range = &mut self.index_ranges[self.current_index_index];
             index_range.start = self.current_vertex_index as u32;
             index_range.end = self.current_vertex_index as u32 + 1;  // todo clamp
         }
 
         // update ring indices
-        self.current_vertex_index = (self.current_vertex_index + 1) % self.vertices.capacity() - 1;
+        self.current_vertex_index = (self.current_vertex_index + 1) % self.capacity - 1;
     }
 }
 
