@@ -73,10 +73,10 @@ pub struct IndexRange {
 #[derive(Debug, Default, Asset, Clone, TypePath)]
 // #[uuid = "c76af88a-8afe-405c-9a64-0a7d845d2546"]
 pub struct Polyline {
-    vertices: Vec<Vec3>,
-    current_vertex_index: usize,
-    index_ranges: Vec<IndexRange>,
-    current_index_index: usize,
+    pub vertices: Vec<Vec3>,
+    pub current_vertex_index: usize,
+    pub index_ranges: Vec<IndexRange>,
+    pub current_index_index: usize,
 }
 
 impl Polyline {
