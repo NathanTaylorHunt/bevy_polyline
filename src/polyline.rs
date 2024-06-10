@@ -90,25 +90,6 @@ impl Polyline {
             current_index_index: 0,
         }
     }
-
-    pub fn add_vertex(&mut self, vertex: Vec3, connected: bool) {
-        // add vertex to buffer
-        self.vertices[self.current_vertex_index] = vertex;
-        
-        // update index ranges
-        if connected {
-            let index_range = &mut self.index_ranges[self.current_index_index];
-            index_range.end = self.current_vertex_index as u32 + 1;  // todo clamp
-        } else {
-            self.current_index_index = (self.current_index_index + 1) % self.capacity;
-            let index_range = &mut self.index_ranges[self.current_index_index];
-            index_range.start = self.current_vertex_index as u32;
-            index_range.end = self.current_vertex_index as u32 + 1;  // todo clamp
-        }
-
-        // update ring indices
-        self.current_vertex_index = (self.current_vertex_index + 1) % self.capacity - 1;
-    }
 }
 
 impl RenderAsset for Polyline {
@@ -469,7 +450,10 @@ impl<P: PhaseItem> RenderCommand<P> for DrawPolyline {
         if let Some(gpu_polyline) = polylines.into_inner().get(pl_handle.unwrap()) {
             pass.set_vertex_buffer(0, gpu_polyline.vertex_buffer.slice(..));
             for range in &gpu_polyline.index_ranges {
-                if range.start != 0 && range.end != 0 {
+                let is_valid_range = true
+                    && range.start != 0 && range.end != 0  // ignore 'null' ranges
+                    && range.start >= range.end;
+                if is_valid_range {
                     pass.draw(0..6, range.start..range.end);
                 }
             }
