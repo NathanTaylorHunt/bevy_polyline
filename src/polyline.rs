@@ -436,7 +436,7 @@ impl<P: PhaseItem> RenderCommand<P> for DrawPolyline {
             pass.set_vertex_buffer(0, gpu_polyline.vertex_buffer.slice(..));
             for range in &gpu_polyline.index_ranges {
                 let is_valid_range = true
-                    && (range.start != 0 && range.end != 0)  // ignore 'null' ranges
+                    // && !(range.start != 0 && range.end != 0)  // ignore 'null' ranges
                     && range.start <= range.end;
                 if is_valid_range {
                     pass.draw(0..6, range.start..range.end);
