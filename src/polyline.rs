@@ -73,23 +73,8 @@ pub struct IndexRange {
 #[derive(Debug, Default, Asset, Clone, TypePath)]
 // #[uuid = "c76af88a-8afe-405c-9a64-0a7d845d2546"]
 pub struct Polyline {
-    pub capacity: usize,
     pub vertices: Vec<Vec3>,
-    pub current_vertex_index: usize,
     pub index_ranges: Vec<IndexRange>,
-    pub current_index_index: usize,
-}
-
-impl Polyline {
-    pub fn with_capacity(capacity: usize) -> Self {
-        Self {
-            capacity,
-            vertices: vec![Vec3::ZERO; capacity],
-            index_ranges: vec![IndexRange { start: 0, end: 0 }; capacity],  // todo add extra param for this capacity
-            current_vertex_index: 0,
-            current_index_index: 0,
-        }
-    }
 }
 
 impl RenderAsset for Polyline {
@@ -451,7 +436,7 @@ impl<P: PhaseItem> RenderCommand<P> for DrawPolyline {
             pass.set_vertex_buffer(0, gpu_polyline.vertex_buffer.slice(..));
             for range in &gpu_polyline.index_ranges {
                 let is_valid_range = true
-                    && range.start != 0 && range.end != 0  // ignore 'null' ranges
+                    && (range.start != 0 && range.end != 0)  // ignore 'null' ranges
                     && range.start <= range.end;
                 if is_valid_range {
                     pass.draw(0..6, range.start..range.end);
